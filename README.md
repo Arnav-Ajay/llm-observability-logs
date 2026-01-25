@@ -1,20 +1,21 @@
-## `llm-observability-logs`
+### `llm-observability-logs`
 
-### Why this repository exists
+## Why this repository exists
 
-Modern LLM systems fail in ways that are **not visible from outputs alone**.
+Modern AI systems fail long **before** they produce an answer.
 
-An answer can be:
+Failures often originate in:
 
-* fluent
-* confident
-* even correct
+* planning decisions
+* retrieval gating
+* evidence selection
+* policy-triggered non-actions
 
-…and still represent a system failure.
+These failures are **invisible at the output layer** — and in many systems, outputs may not exist at all.
 
-This repository exists to answer a single operational question:
+This repository exists to answer a stricter operational question:
 
-> **Given a model output, can we reconstruct the exact decision path that produced it — without rerunning the system?**
+> **Given a system execution, can we reconstruct *every decision that occurred* — and every decision that could not have occurred — without rerunning the system?**
 
 If the answer is no, the system is not observable.
 
@@ -24,24 +25,24 @@ If the answer is no, the system is not observable.
 
 * Not a RAG pipeline
 * Not an agent framework
-* Not a tracing UI
-* Not an LLM-based explanation layer
+* Not an LLM execution layer
+* Not a tracing UI or dashboard
 
-All generation, retrieval, planning, and memory logic lives **upstream**.
+This repository does **not** generate answers.
 
-This repository observes those systems without modifying them.
+It observes **decision-making boundaries** in upstream systems, without modifying their behavior.
 
 ---
 
 ## Upstream systems (required context)
 
-This observability layer instruments existing agent pipelines, including:
+This observability layer instruments existing pipelines, including:
 
-* **[`rag-minimal-control`](https://github.com/Arnav-Ajay/rag-minimal-control)**: Baseline end-to-end retrieval-augmented generation
-* **[`agent-tool-retriever`](https://github.com/Arnav-Ajay/agent-tool-retriever)**: Explicit retrieval as a decision, not a default
-* **[`agent-planner-executor`](https://github.com/Arnav-Ajay/agent-planner-executor)**: Separation of planning and execution responsibilities
-* **[`agent-memory-systems`](https://github.com/Arnav-Ajay/agent-memory-systems)**: Episodic and semantic memory with persistence and decay
-* **[`rag-failure-modes`](https://github.com/Arnav-Ajay/rag-failure-modes)**: Intentionally broken behaviors used as observability test cases
+* **`rag-minimal-control`** — baseline retrieval-augmented execution
+* **`agent-tool-retriever`** — retrieval as an explicit decision
+* **`agent-planner-executor`** — separation of planning and execution
+* **`agent-memory-systems`** — memory architecture *without runtime participation*
+* **`rag-failure-modes`** — controlled failure probes
 
 No logic from these systems is reimplemented here.
 
@@ -52,95 +53,103 @@ They are treated as **black-box dependencies**.
 ## Core principle
 
 > **Observability is not logging more.
-> Observability is logging the right boundaries.**
+> Observability is making agency explicit.**
 
-Each system layer is responsible for emitting **only the facts it owns**:
+Only components that possess **independent decision power** are instrumented.
 
-| Layer     | Emits                                 | Never Emits        |
-| --------- | ------------------------------------- | ------------------ |
-| Planner   | decisions, alternatives, reason codes | tool outputs       |
-| Retriever | candidate IDs, scores, drops          | generated text     |
-| Executor  | context usage, token budgets          | planner rationale  |
-| Memory    | reads, writes, evictions              | planning decisions |
+If a component has no agency, its absence is recorded — not simulated.
 
-This preserves causal attribution.
+---
+
+## What is currently observable (and what is not)
+
+| Layer     | Status  | Observable signal                        |
+| --------- | ------- | ---------------------------------------- |
+| Planner   | Active  | Decisions, confidence, gating            |
+| Retriever | Active  | Evidence selection, score separation     |
+| Executor  | Passive | Structural placeholder only              |
+| Memory    | Absent  | Explicitly recorded as non-participating |
+| LLM       | Absent  | No output layer exists                   |
+
+Absence is treated as a **first-class system fact**, not a missing feature.
 
 ---
 
 ## Trace model
 
-All executions emit a **single structured trace**, written as JSONL.
+Each execution emits **one unified trace**, written as JSONL.
 
-A trace is sufficient to answer:
+The trace answers:
 
-* Why retrieval occurred (or didn’t)
-* Why specific evidence was selected
-* Whether memory influenced the outcome
-* Where failure entered the system
+* Why retrieval occurred or was skipped
+* Whether evidence separation was strong or ambiguous
+* Which decisions were impossible by design
+* Where future failure modes *cannot* exist yet
 
-No trace requires replaying the model.
+The trace does **not** assume generation, memory, or retries.
 
 ---
 
-## Repository layout
-
-* `observability/schema/`
-  Canonical trace schema and field rationale
+## Repository layout (interpretation matters)
 
 * `observability/adapters/`
-  Wrappers around upstream components (planner, retriever, executor, memory)
+  Instrumentation for components with real agency
+  (empty adapters indicate intentional absence)
 
 * `observability/wiring/`
-  Composition of an instrumented pipeline from unmodified dependencies
+  Pipeline-level observability orchestration
+
+* `observability/schema/`
+  Declared trace contracts and field rationale
 
 * `observability/replay/`
-  Deterministic reconstruction of decision paths from traces
-
-* `traces/`
-  Captured executions (successes, failures, ambiguous cases)
+  Reserved for future systems with divergent outcomes
 
 * `postmortems/`
-  Failure analyses grounded entirely in trace evidence
+  Reserved for failures that actually occur
+
+This layout reflects **system maturity**, not ambition.
 
 ---
 
-## Replay, not interpretation
+## Replay vs interpretation
 
-This repository does **not** attempt to explain model reasoning.
+This repository does **not** explain reasoning.
 
-Instead, it reconstructs **system behavior**:
+It reconstructs **system behavior**:
 
 * decisions taken
-* alternatives rejected
-* information accessed
-* resources consumed
+* actions gated
+* components bypassed
+* capabilities absent
 
-Replay tools operate on trace files only.
+Replay operates on trace files only.
 No models are invoked during analysis.
 
 ---
 
 ## Why this matters
 
-Without observability:
+Without decision-level observability:
 
-* failures are anecdotal
-* regressions are invisible
-* correctness is inferred from vibes
+* failures are attributed to “model behavior”
+* regressions are undetectable
+* systems cannot be owned responsibly
 
 With observability:
 
-* failures are localizable
-* responsibility is attributable
-* systems become ownable
+* responsibility is localizable
+* absence is provable
+* future complexity compounds safely
 
-This repository turns opaque LLM pipelines into debuggable systems.
+This repository establishes observability **before intelligence**, not after.
 
 ---
 
 ## Final invariant
 
-If a system answer cannot be explained using **only a trace file**,
+If a system’s behavior cannot be explained using **only its trace** —
+including why certain behaviors were impossible —
 the system is not production-grade.
 
 This repository enforces that constraint.
