@@ -1,0 +1,55 @@
+{
+    "trace_id": "uuid",
+    "ts_utc": "timestamp",
+    "input": {
+        "query": "string",
+        "query_hash": "sha256"
+    },
+    "planner": {
+        "ts_utc": "timestamp",
+        "decision": "RETRIEVE | NO_RETRIEVE | TOOL_CALL",
+        "confidence": 0.0,
+        "requires_external_evidence": true
+    },
+    "retriever": { 
+        "ts_utc": "timestamp",
+        "triggered": true,
+        "top_k": 4,
+        "top_k_chunk_ids": ["c17", "c23"],
+        "top_k_chunk_scores": [0.41, 0.39],
+        "dropped_candidate_ids": ["c02"],
+        "score_spread": 0.02
+    },
+    "memory": {
+        "working": {    
+            "last_updated_utc": "timestamp",
+            "reads": 0,
+            "writes": 1,
+            "influenced_execution": false
+        },
+        "episodic": {
+            "last_updated_utc": "timestamp",
+            "num_events_retrieved": 5,
+            "retrieved_ids": ["c02"],
+            "similarities": [0.72],
+            "influenced_execution": true
+        },
+        "semantic": {
+            "last_updated_utc": "timestamp",
+            "keys_accessed": ["air_pollution_thresholds"],
+            "hit": true,
+            "influenced_execution": true
+        }
+    },
+    "executor": {
+        "ts_utc": "timestamp",
+        "mode": "AUGMENTED",
+        "context_ids_used": ["c17"],
+        "token_budget": 2048
+    },
+    "outcome": {
+        "ts_utc": "timestamp",
+        "status": "ANSWERED | REFUSED | PARTIAL | FAILED",
+        "refusal": false
+    }
+}
