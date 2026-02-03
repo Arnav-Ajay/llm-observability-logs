@@ -1,5 +1,5 @@
 # observability/adapters/observed_planner.py
-from agent_memory_systems import planner, decision # type: ignore
+from llm_generation_control import planner, decision # type: ignore
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path

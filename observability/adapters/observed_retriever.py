@@ -1,6 +1,6 @@
 # observability/adapters/observed_retriever.py
 from typing import Dict
-from agent_memory_systems import tools # type: ignore
+from llm_generation_control import tools # type: ignore
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,7 +13,7 @@ class ObservedRetriever:
         uuid = datetime.now(timezone.utc).isoformat()
 
         print("Retrieval started for query:", question)
-        retrieval_decision = tools.retrieve_tool(question=question, k=k, pdf_dir=INPUT_PDF_DIR, chunking_strategy=chunking_strategy, enable_rerank=enable_rerank)    
+        retrieval_decision = tools.retrieve_tool(question=question, k=k, pdf_dir=INPUT_PDF_DIR, enable_rerank=enable_rerank)    
         
         raw_scores = [
             chunk.get("score")
