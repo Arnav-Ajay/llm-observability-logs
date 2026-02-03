@@ -1,9 +1,8 @@
 # observability/wiring/instrumented_pipeline.py
 from observability.adapters.observed_planner import ObservedPlanner
-# from observability.adapters.observed_retriever import ObservedRetriever
 from observability.adapters.observed_executor import ObservedExecutor
 from observability.adapters.observed_evidence import ObservedEvidence
-from observability.adapters.observed_generation import ObservedPolicyGeneration
+from observability.adapters.observed_generation import ObservedGenerationPolicy
 from datetime import datetime, timezone
 from pathlib import Path
 import json
@@ -26,17 +25,6 @@ def main():
     observed_planner = ObservedPlanner()
     plan, planner_trace = observed_planner.plan(question=question, k=TOP_K)
     print("\nPlan Action: ", plan.steps[0].action)
-
-    triggered = False
-    if plan.steps:
-        if plan.steps[0].action == "retrieve":
-            triggered = True
-
-    # if triggered:
-    #     observed_retriever = ObservedRetriever()
-    #     retrieval_results, retrieval_trace = observed_retriever.retrieve(question=question, triggered=triggered, k=TOP_K)
-
-    
     
     observed_executor = ObservedExecutor()
     execution_result, execution_trace = observed_executor.execute_trace_obsevability(plan=plan, wm=None, k=TOP_K)
@@ -58,7 +46,7 @@ def main():
     print("\tConflicting Sources Present?: ", assessment.conflicting_sources)
     print("\tRationale: ", assessment.rationale)
 
-    observed_gen_policy = ObservedPolicyGeneration()
+    observed_gen_policy = ObservedGenerationPolicy()
     policy_decision, policy_decision_trace = observed_gen_policy.decide_observability(question, assessment)
     print("\nPolicy Decision:\n\tDecision: ", policy_decision.decision)
     print("\tRationale: ", policy_decision.rationale)
@@ -72,7 +60,6 @@ def main():
             "query_hash": query_hash
         },
         "planner": planner_trace,
-        # "retriever": retrieval_trace if triggered else {"triggered": False},
         "executor": execution_trace,
         "evidence": assessment_trace,
         "generation_policy_decision": policy_decision_trace,

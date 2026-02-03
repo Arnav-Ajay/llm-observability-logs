@@ -7,7 +7,7 @@ from llm_generation_control import evidence as ev
 from llm_generation_control import policies
 
 @dataclass
-class ObservedPolicyGeneration:
+class ObservedGenerationPolicy:
     def decide_observability(self, question: str, evidence_summary: dict):
         uuid = datetime.now(timezone.utc).isoformat()
         evidence = ev.models.EvidenceAssessment(

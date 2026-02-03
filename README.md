@@ -8,7 +8,7 @@ Failures often originate in:
 
 * planning decisions
 * retrieval gating
-* evidence selection
+* evidence assessment
 * policy-triggered non-actions
 
 These failures are **invisible at the output layer** — and in many systems, outputs may not exist at all.
@@ -38,11 +38,12 @@ It observes **decision-making boundaries** in upstream systems, without modifyin
 
 This observability layer instruments existing pipelines, including:
 
-* **`rag-minimal-control`** — baseline retrieval-augmented execution
-* **`agent-tool-retriever`** — retrieval as an explicit decision
-* **`agent-planner-executor`** — separation of planning and execution
-* **`agent-memory-systems`** — memory architecture *without runtime participation*
-* **`rag-failure-modes`** — controlled failure probes
+* [**`rag-minimal-control`**](https://github.com/Arnav-Ajay/rag-minimal-control) — baseline retrieval-augmented execution
+* [**`agent-tool-retriever`**](https://github.com/Arnav-Ajay/agent-tool-retriever) — retrieval as an explicit decision
+* [**`agent-planner-executor`**](https://github.com/Arnav-Ajay/agent-planner-executor) — separation of planning and execution
+* [**`agent-memory-systems`**](https://github.com/Arnav-Ajay/agent-memory-systems) — memory architecture *without runtime participation*
+* [**`llm-generation-control`**](https://github.com/Arnav-Ajay/llm-generation-control) — generation gating and refusal policy *without text execution*
+* [**`rag-failure-modes`**](https://github.com/Arnav-Ajay/rag-failure-modes) — controlled failure probes
 
 No logic from these systems is reimplemented here.
 
@@ -63,13 +64,15 @@ If a component has no agency, its absence is recorded — not simulated.
 
 ## What is currently observable (and what is not)
 
-| Layer     | Status  | Observable signal                        |
-| --------- | ------- | ---------------------------------------- |
-| Planner   | Active  | Decisions, confidence, gating            |
-| Retriever | Active  | Evidence selection, score separation     |
-| Executor  | Passive | Structural placeholder only              |
-| Memory    | Absent  | Explicitly recorded as non-participating |
-| LLM       | Absent  | No output layer exists                   |
+| Layer               | Status  | Observable signal                    |
+| ------------------- | ------- | ------------------------------------ |
+| Planner             | Active  | Decisions, confidence, gating        |
+| Retriever           | Active  | Evidence selection, score separation |
+| Executor            | Passive | Execution mode, context usage        |
+| Evidence Assessment | Active  | Sufficiency, coverage, conflicts     |
+| Generation Policy   | Active  | Allow / Hedge / Refuse               |
+| Generation          | Absent  | No text or tokens logged             |
+| Memory              | Absent  | Explicitly non-participating         |
 
 Absence is treated as a **first-class system fact**, not a missing feature.
 
@@ -83,10 +86,11 @@ The trace answers:
 
 * Why retrieval occurred or was skipped
 * Whether evidence separation was strong or ambiguous
-* Which decisions were impossible by design
-* Where future failure modes *cannot* exist yet
+* Whether evidence was sufficient to support generation
+* Why generation was allowed, hedged, or refused
+* Which behaviors were impossible by design
 
-The trace does **not** assume generation, memory, or retries.
+The trace observes generation **decisions**, but never generation **outputs**, memory effects, or retries.
 
 ---
 
@@ -94,7 +98,7 @@ The trace does **not** assume generation, memory, or retries.
 
 * `observability/adapters/`
   Instrumentation for components with real agency
-  (empty adapters indicate intentional absence)
+  *(empty adapters indicate intentional absence)*
 
 * `observability/wiring/`
   Pipeline-level observability orchestration
